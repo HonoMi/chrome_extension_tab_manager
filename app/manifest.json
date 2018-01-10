@@ -1,13 +1,12 @@
 {
-  "name": "Show Meta Info.",
+  "name": "Tab Manager.",
   "short_name": "__MSG_appShortName__",
-  "description": "__MSG_appDescription__",
+  "description": "タブを賢く閉じる。",
   "version": "0.0.0",
   "manifest_version": 2,
   "default_locale": "en",
   "icons": {
-    "16": "images/icon_search.png",
-    "128": "images/icon_search.png"
+    "128": "images/icon_cart.png"
   },
   "background": {
     "scripts": [
@@ -15,10 +14,11 @@
     ]
   },
   "browser_action": {
-    "default_icon": "images/icon_search.png",
-    "default_title": "Show Meta Info."
+      "default_icon": "images/icon_cart.png",
+      "default_title": "Tab Manager.",
+      "default_popup": "pages/popup.html"
   },
-  "options_page": "pages/options.html",
+
   "options_ui": {
     "page": "pages/options.html",
     "chrome_style": true

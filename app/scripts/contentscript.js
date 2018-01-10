@@ -11,57 +11,18 @@ const jquery = require('jquery');
 window.$ = window.jQuery = jquery;
 const util = require('./util');
 
-setTimeout(
-
-function(){
-
-$(document).ready(function(){
-    const url = location.href;
-    chrome.runtime.sendMessage({method: "getQueryWords", url: url}, function(response){
-            const googleQueryWords = util.getQueryWordsFromDOM() !== "" ? util.getQueryWordsFromDOM() : response
-            if(googleQueryWords !== ""){
-                const urls = $("a[href]").map(function(){
-                    const path = $(this).attr("href");
-                    if(path.match("^\/.*")){
-                        return location.protocol + "//" + location.hostname + path
-                    }else{
-                        return path
-                    }
-                })
-                chrome.runtime.sendMessage({method: "storeQueryWords", urls: urls, googleQueryWords: googleQueryWords}, function(response) {});
-            }
-        });
-
-})
-
-
-const url = location.href;
-chrome.runtime.sendMessage({method: "getQueryWords", url: url}, function(response){
-
-    const googleQueryWords = util.getQueryWordsFromDOM() !== "" ? util.getQueryWordsFromDOM() : response
-    const title = $("title").text().replace(/\n/g, "").replace(/^ +/, "").replace(/ +$/g, "")
-
-    // meta情報を表示するdiv
-    const div = $("<div>").attr("id", "show_google_query_words_meta").attr("class", "meta_parent");
-    $("<li>").attr("id", "show_google_query_words_title").append($("<span>").text("title: ")).append(title).appendTo(div);
-    $("<li>").attr("id", "show_google_query_words_query").append($("<span>").text("query: ")).append(googleQueryWords).appendTo(div);
-    if($("#show_google_query_words_meta").length === 0){
-        $("body").append(div);
-    }else{
-        $("#show_google_query_words_meta").replaceWith(div);
+// キーボードリスナーを登録する。
+window.document.onkeydown = function(event){
+    if(event.altKey){
+        if(event.key === "h"/* Upper case because shift key is simultaneously pressed.*/){
+            chrome.runtime.sendMessage({method: "manageTab", type: "closeLeft"}, function(response) {});
+        }else if(event.key === "l"){
+            chrome.runtime.sendMessage({method: "manageTab", type: "closeRight"}, function(response) {});
+        }else if(event.key === "o"){
+            chrome.runtime.sendMessage({method: "manageTab", type: "closeOthers"}, function(response) {});
+        }else if(event.key === "b"){
+            chrome.runtime.sendMessage({method: "manageTab", type: "closeAll"}, function(response) {});
+        }
     }
-
-    // mouseoverで隠す。
-    $("#show_google_query_words_meta").on("mouseover", function(){
-        $("#show_google_query_words_meta").attr("id", "hide");
-        setTimeout(function() { $("#hide").attr("id", "show_google_query_words_meta") }, 5000);
-        });
-
-})
-// Css
-chrome.runtime.sendMessage({method: "callForCSS"})
-
-
 }
-, 3000);
 }
