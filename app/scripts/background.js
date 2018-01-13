@@ -4,51 +4,50 @@
 "use strict";
 const jquery = require('jquery');
 window.$ = window.jQuery = jquery;
-const util = require('./util')
+const _ = require('lodash');
+const R = require('ramda');
 
-    chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-        if (request.method == "manageTab"){
-            // activeなタブ(現在見ているタブ)
-            chrome.tabs.query({active: true, currentWindow: true}, function(result){
-                const curTabId = result[0].id;
-                // 全てのタブ
-                chrome.tabs.query({currentWindow: true}, function(result){
-                    const closeTabIds = [];
-                    if(request.type === "closeAll"){
-                        for(let i=0; i<result.length; i++){
-                            const tabId = result[i].id;
-                            console.log(tabId);
-                            closeTabIds.push(tabId);
-                        }
-                    }else if(request.type === "closeOthers"){
-                        for(let i=0; i<result.length; i++){
-                            const tabId = result[i].id;
-                            if(tabId !== curTabId){
-                                closeTabIds.push(tabId);
-                            }
-                        }
-                    }else{
-                        let curTabPassed = false;
-                        for(let i=0; i<result.length; i++){
-                            const tabId = result[i].id;
-                            if(tabId === curTabId){
-                                curTabPassed = true;
-                                continue;
-                            }
-                            if(request.type === "closeRight" && curTabPassed){
-                                closeTabIds.push(tabId)
-                            }
-                            if(request.type === "closeLeft" && !curTabPassed){
-                                closeTabIds.push(tabId)
-                            }
-                        }
-                    }
-                    chrome.tabs.remove(closeTabIds);
-                })
-            })
-
-        }
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    if (request.method !== "manageTab"){
         sendResponse({});
-    });
+    }
+
+    chrome.tabs.query({active: true, currentWindow: true}, function(activeTabs){
+        const curTabId = activeTabs[0].id;
+        // 全てのタブ
+        chrome.tabs.query({currentWindow: true}, function(activeTabs){
+            // let closeTabIds = [];
+            if(request.type === "closeAll"){
+                chrome.tabs.remove(
+                    _(activeTabs)
+                        .map(tab=>tab.id)
+                        .value()
+                    )
+            }else if(request.type === "closeOthers"){
+                chrome.tabs.remove(
+                    _(activeTabs)
+                        .filter(tab=>tab.id !== curTabId)
+                        .map(tab=>tab.id)
+                        .value()
+                    )
+            }else if(request.type === "closeLeft"){
+                chrome.tabs.remove(
+                     _(activeTabs)
+                        .map(tab=>tab.id)
+                        .takeWhile((tabId, index, array)=>tabId!==curTabId)
+                        .value()
+                    )
+            }else if(request.type === "closeRight"){
+                chrome.tabs.remove(
+                     _(activeTabs)
+                        .map(tab=>tab.id)
+                        .takeRightWhile((tabId, index, array)=>tabId!==curTabId)
+                        .value()
+                    )
+            }
+        })
+    })
+    sendResponse({});
+});
 
 }
