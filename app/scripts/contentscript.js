@@ -7,7 +7,6 @@
 const jquery = require('jquery');
 window.$ = window.jQuery = jquery;
 const Rx = require('rxjs');
-const R = require('ramda');
 
 function sendMessage(keyboardEvent){
     if(keyboardEvent.altKey){
